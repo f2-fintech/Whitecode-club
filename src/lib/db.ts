@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 
 // Using standard connection string to bypass querySrv ECONNREFUSED DNS issue
-let MONGODB_URI = process.env.MONGODB_URI || 'mongodb://f2fintech_db_user:F2fin-hrms@ac-rroip3u-shard-00-00.t390pwj.mongodb.net:27017,ac-rroip3u-shard-00-01.t390pwj.mongodb.net:27017,ac-rroip3u-shard-00-02.t390pwj.mongodb.net:27017/whitecoat_club?ssl=true&replicaSet=atlas-lb0u53-shard-0&authSource=admin';
+let MONGODB_URI = process.env.MONGODB_URI;
 
 if (!MONGODB_URI.includes('retryWrites=')) {
   MONGODB_URI += (MONGODB_URI.includes('?') ? '&' : '?') + 'retryWrites=false';
