@@ -14,40 +14,29 @@ declare global {
 
 export default function DoctorLoginPage() {
   const [loginMethod, setLoginMethod] = useState<'password' | 'otp'>('password');
-  
+
   const [mobile, setMobile] = useState('');
   const [password, setPassword] = useState('');
-  
+
   // OTP States
   const [otp, setOtp] = useState('');
   const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
   const [otpSent, setOtpSent] = useState(false);
-  
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [pendingNotice, setPendingNotice] = useState(false);
 
-  // Setup invisible reCAPTCHA for Phone Auth
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      // Clear old verifier if it exists (fixes hot-reload/remount errors)
-      if (window.recaptchaVerifier) {
-        try { window.recaptchaVerifier.clear(); } catch (e) {}
-        window.recaptchaVerifier = null;
-      }
-      
-      window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+  const recaptchaVerifierRef = React.useRef<RecaptchaVerifier | null>(null);
+
+  const getRecaptcha = () => {
+    if (!recaptchaVerifierRef.current) {
+      recaptchaVerifierRef.current = new RecaptchaVerifier(auth, 'recaptcha-container', {
         size: 'invisible',
       });
     }
-
-    return () => {
-      if (window.recaptchaVerifier) {
-        try { window.recaptchaVerifier.clear(); } catch (e) {}
-        window.recaptchaVerifier = null;
-      }
-    };
-  }, []);
+    return recaptchaVerifierRef.current;
+  };
 
   const handlePasswordLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -86,15 +75,15 @@ export default function DoctorLoginPage() {
       setError('Please enter a valid 10-digit mobile number');
       return;
     }
-    
+
     setLoading(true);
     setError('');
-    
+
     try {
       // Adding +91 (India) country code by default. Change if needed.
       const formattedPhone = mobile.startsWith('+') ? mobile : `+91${mobile}`;
-      const appVerifier = window.recaptchaVerifier;
-      
+      const appVerifier = getRecaptcha();
+
       const confirmation = await signInWithPhoneNumber(auth, formattedPhone, appVerifier);
       setConfirmationResult(confirmation);
       setOtpSent(true);
@@ -108,12 +97,31 @@ export default function DoctorLoginPage() {
   const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!confirmationResult) return;
-    
+
     setLoading(true);
     setError('');
 
     try {
-      await confirmationResult.confirm(otp);
+      const userCredential = await confirmationResult.confirm(otp);
+      const idToken = await userCredential.user.getIdToken();
+
+      const res = await fetch('/api/auth/doctor/otp-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idToken }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        if (data.pending) {
+          setPendingNotice(true);
+          setLoading(false);
+          return;
+        }
+        throw new Error(data.error || 'Server OTP verification failed');
+      }
+
       window.location.href = '/doctor/dashboard';
     } catch (err: any) {
       setError(err.message || 'Invalid OTP code.');
@@ -124,7 +132,7 @@ export default function DoctorLoginPage() {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex items-center justify-center p-4 relative overflow-hidden">
       <div id="recaptcha-container"></div>
-      
+
       {/* Ambient Light */}
       <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-indigo-200/40 rounded-full blur-3xl pointer-events-none" />
 
@@ -141,17 +149,15 @@ export default function DoctorLoginPage() {
         <div className="flex p-1 bg-slate-100 rounded-xl mb-6">
           <button
             onClick={() => { setLoginMethod('password'); setError(''); }}
-            className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all ${
-              loginMethod === 'password' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
-            }`}
+            className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all ${loginMethod === 'password' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+              }`}
           >
             Use Password
           </button>
           <button
             onClick={() => { setLoginMethod('otp'); setError(''); }}
-            className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all ${
-              loginMethod === 'otp' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
-            }`}
+            className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all ${loginMethod === 'otp' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+              }`}
           >
             Use OTP
           </button>

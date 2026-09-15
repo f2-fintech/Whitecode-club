@@ -77,7 +77,10 @@ export function verifyAuthFromRequest(req: NextRequest): UserTokenPayload | null
   return verifyJwtToken(token);
 }
 
-export async function verifyAuth(req: NextRequest, expectedRole?: string) {
+export async function verifyAuth(
+  req: NextRequest, 
+  expectedRole?: string
+): Promise<{ success: false, decoded?: undefined } | { success: true, decoded: { id: string } & UserTokenPayload }> {
   const payload = verifyAuthFromRequest(req);
   if (!payload) return { success: false };
   if (expectedRole && payload.role !== expectedRole) return { success: false };

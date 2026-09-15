@@ -25,27 +25,16 @@ export default function VendorLoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Setup invisible reCAPTCHA for Phone Auth
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      // Clear old verifier if it exists (fixes hot-reload/remount errors)
-      if (window.recaptchaVerifierVendor) {
-        try { window.recaptchaVerifierVendor.clear(); } catch (e) {}
-        window.recaptchaVerifierVendor = null;
-      }
-      
-      window.recaptchaVerifierVendor = new RecaptchaVerifier(auth, 'recaptcha-container-vendor', {
+  const recaptchaVerifierRef = React.useRef<RecaptchaVerifier | null>(null);
+
+  const getRecaptcha = () => {
+    if (!recaptchaVerifierRef.current) {
+      recaptchaVerifierRef.current = new RecaptchaVerifier(auth, 'recaptcha-container-vendor', {
         size: 'invisible',
       });
     }
-
-    return () => {
-      if (window.recaptchaVerifierVendor) {
-        try { window.recaptchaVerifierVendor.clear(); } catch (e) {}
-        window.recaptchaVerifierVendor = null;
-      }
-    };
-  }, []);
+    return recaptchaVerifierRef.current;
+  };
 
   const handlePasswordLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -85,7 +74,7 @@ export default function VendorLoginPage() {
     try {
       // Adding +91 (India) country code by default
       const formattedPhone = mobile.startsWith('+') ? mobile : `+91${mobile}`;
-      const appVerifier = window.recaptchaVerifierVendor;
+      const appVerifier = getRecaptcha();
       
       const confirmation = await signInWithPhoneNumber(auth, formattedPhone, appVerifier);
       setConfirmationResult(confirmation);
@@ -105,7 +94,20 @@ export default function VendorLoginPage() {
     setError('');
 
     try {
-      await confirmationResult.confirm(otp);
+      const userCredential = await confirmationResult.confirm(otp);
+      const idToken = await userCredential.user.getIdToken();
+
+      const res = await fetch('/api/auth/vendor/otp-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idToken }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Server OTP verification failed');
+      }
+
       window.location.href = '/vendor/dashboard';
     } catch (err: any) {
       setError(err.message || 'Invalid OTP code.');
