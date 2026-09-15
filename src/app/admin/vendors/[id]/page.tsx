@@ -25,7 +25,7 @@ export default function AdminVendorDetailPage({ params }: { params: Promise<{ id
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Top-Up Form State
+
   const [topupAmount, setTopupAmount] = useState<string>('');
   const [topupNotes, setTopupNotes] = useState<string>('Weekly cash settlement');
   const [submitting, setSubmitting] = useState(false);
