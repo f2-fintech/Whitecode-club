@@ -149,11 +149,10 @@ export default function AdminVendorDetailPage({ params }: { params: Promise<{ id
             <div className="flex items-center gap-3">
               <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">{vendor.name}</h1>
               <span
-                className={`text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider ${
-                  vendor.status === 'active'
+                className={`text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider ${vendor.status === 'active'
                     ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                     : 'bg-rose-50 text-rose-700 border border-rose-200'
-                }`}
+                  }`}
               >
                 {vendor.status}
               </span>
@@ -165,11 +164,10 @@ export default function AdminVendorDetailPage({ params }: { params: Promise<{ id
 
           <button
             onClick={handleToggleStatus}
-            className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all ${
-              vendor.status === 'active'
+            className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all ${vendor.status === 'active'
                 ? 'bg-slate-100 hover:bg-rose-50 text-rose-700 border-slate-200 hover:border-rose-200'
                 : 'bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-600'
-            }`}
+              }`}
           >
             {vendor.status === 'active' ? 'Suspend Account' : 'Reactivate Account'}
           </button>

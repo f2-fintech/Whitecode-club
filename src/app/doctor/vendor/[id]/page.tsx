@@ -1,14 +1,14 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, use } from 'react';
 import Navbar from '@/components/shared/Navbar';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, ShoppingBag, Plus, Minus } from 'lucide-react';
 import Link from 'next/link';
 
-export default function DoctorVendorMenuPage({ params }: { params: { id: string } }) {
+export default function DoctorVendorMenuPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
-  const vendorId = params.id;
+  const { id: vendorId } = use(params);
 
   const [menuItems, setMenuItems] = useState<any[]>([]);
   const [vendorDetails, setVendorDetails] = useState<any>(null);

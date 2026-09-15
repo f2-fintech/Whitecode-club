@@ -76,3 +76,10 @@ export function verifyAuthFromRequest(req: NextRequest): UserTokenPayload | null
   if (!token) return null;
   return verifyJwtToken(token);
 }
+
+export async function verifyAuth(req: NextRequest, expectedRole?: string) {
+  const payload = verifyAuthFromRequest(req);
+  if (!payload) return { success: false };
+  if (expectedRole && payload.role !== expectedRole) return { success: false };
+  return { success: true, decoded: { id: payload.userId, ...payload } };
+}

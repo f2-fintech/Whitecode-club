@@ -3,7 +3,7 @@ import { connectToDatabase } from '@/lib/db';
 import MenuItem from '@/lib/models/MenuItem';
 import { verifyAuth } from '@/lib/auth';
 
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const authResult = await verifyAuth(req, 'vendor');
     if (!authResult.success) {
@@ -12,7 +12,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 
     await connectToDatabase();
     const vendorId = authResult.decoded.id;
-    const itemId = params.id;
+    const { id: itemId } = await params;
 
     const body = await req.json();
     
@@ -37,7 +37,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   }
 }
 
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const authResult = await verifyAuth(req, 'vendor');
     if (!authResult.success) {
@@ -46,7 +46,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
 
     await connectToDatabase();
     const vendorId = authResult.decoded.id;
-    const itemId = params.id;
+    const { id: itemId } = await params;
 
     const item = await MenuItem.findOneAndDelete({ _id: itemId, vendorId });
     if (!item) {
