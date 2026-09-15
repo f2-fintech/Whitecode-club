@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/db';
 import Transaction from '@/lib/models/Transaction';
+import Doctor from '@/lib/models/Doctor';
 import { verifyAuthFromRequest } from '@/lib/auth';
 
 export async function GET(req: NextRequest) {
@@ -13,7 +14,7 @@ export async function GET(req: NextRequest) {
     await connectToDatabase();
     const transactions = await Transaction.find({ vendorId: authUser.userId })
       .sort({ createdAt: -1 })
-      .populate('doctorId', 'name mobile registrationNumber');
+      .populate({ path: 'doctorId', model: Doctor, select: 'name mobile registrationNumber' });
 
     return NextResponse.json({ transactions });
   } catch (error: any) {
