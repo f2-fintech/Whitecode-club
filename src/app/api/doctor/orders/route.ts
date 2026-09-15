@@ -87,13 +87,14 @@ export async function POST(req: NextRequest) {
 
       // Create Transaction
       await Transaction.create([{
-        type: 'order_payment',
+        type: 'doctor_payment',
         doctorId,
         vendorId,
-        orderId: newOrder[0]._id,
         amount: totalAmount,
         doctorBalanceAfter: doctor.walletBalance,
         vendorBalanceAfter: vendor.collectedBalance,
+        initiatedBy: 'doctor',
+        notes: `Payment for Order ${newOrder[0]._id}`,
       }], { session });
 
       await session.commitTransaction();

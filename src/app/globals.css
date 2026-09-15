@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+/* Hide Next.js Dev Indicator completely */
+nextjs-portal {
+  display: none !important;
+}
+
 :root {
   --background: #f8fafc;
   --foreground: #0f172a;

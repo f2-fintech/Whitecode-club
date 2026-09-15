@@ -1,7 +1,11 @@
 import mongoose from 'mongoose';
 
-// Using standard connection string to bypass querySrv ECONNREFUSED DNS issue
-let MONGODB_URI = process.env.MONGODB_URI;
+let MONGODB_URI = process.env.MONGODB_URI || '';
+
+if (!MONGODB_URI) {
+  throw new Error('Please define the MONGODB_URI environment variable inside .env');
+}
+
 
 if (!MONGODB_URI.includes('retryWrites=')) {
   MONGODB_URI += (MONGODB_URI.includes('?') ? '&' : '?') + 'retryWrites=false';

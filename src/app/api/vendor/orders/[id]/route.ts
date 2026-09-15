@@ -3,7 +3,7 @@ import { connectToDatabase } from '@/lib/db';
 import Order from '@/lib/models/Order';
 import { verifyAuth } from '@/lib/auth';
 
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const authResult = await verifyAuth(req, 'vendor');
     if (!authResult.success) {
@@ -12,7 +12,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 
     await connectToDatabase();
     const vendorId = authResult.decoded.id;
-    const orderId = params.id;
+    const { id: orderId } = await params;
 
     const body = await req.json();
     const { status } = body;

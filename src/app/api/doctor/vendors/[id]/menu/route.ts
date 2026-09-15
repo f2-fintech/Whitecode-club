@@ -3,7 +3,7 @@ import { connectToDatabase } from '@/lib/db';
 import MenuItem from '@/lib/models/MenuItem';
 import { verifyAuth } from '@/lib/auth';
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const authResult = await verifyAuth(req, 'doctor');
     if (!authResult.success) {
@@ -11,7 +11,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     }
 
     await connectToDatabase();
-    const vendorId = params.id;
+    const { id: vendorId } = await params;
 
     // Fetch active menu items for this vendor
     const menuItems = await MenuItem.find({ vendorId, isAvailable: true }).sort({ category: 1, name: 1 });
