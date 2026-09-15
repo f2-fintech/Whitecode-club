@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/db';
 import Transaction from '@/lib/models/Transaction';
+import Doctor from '@/lib/models/Doctor';
+import Vendor from '@/lib/models/Vendor';
+import Admin from '@/lib/models/Admin';
 import { verifyAuthFromRequest } from '@/lib/auth';
 
 export async function GET(req: NextRequest) {
@@ -25,9 +28,9 @@ export async function GET(req: NextRequest) {
 
     const transactions = await Transaction.find(query)
       .sort({ createdAt: -1 })
-      .populate('doctorId', 'name mobile registrationNumber')
-      .populate('vendorId', 'name vendorCode category hospitalCluster')
-      .populate('adminId', 'name email');
+      .populate({ path: 'doctorId', model: Doctor, select: 'name mobile registrationNumber' })
+      .populate({ path: 'vendorId', model: Vendor, select: 'name vendorCode category hospitalCluster' })
+      .populate({ path: 'adminId', model: Admin, select: 'name email' });
 
     return NextResponse.json({ transactions });
   } catch (error: any) {
